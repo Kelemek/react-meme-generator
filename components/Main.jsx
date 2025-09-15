@@ -100,7 +100,9 @@ export default function Main() {
                     style={{ maxWidth: '100%', cursor: 'pointer', border: '2px solid #333' }}
                     onClick={handleCanvasClick}
                 />
-                {/* Meme image will be downloaded on click. */}
+                <div style={{ marginTop: '8px', color: '#333', fontSize: '0.95em', textAlign: 'center' }}>
+                    <strong>Tip:</strong> Click the image to download your meme.
+                </div>
             </div>
         </main>
     )
