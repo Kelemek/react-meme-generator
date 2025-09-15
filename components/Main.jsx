@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 
 export default function Main() {
     const [meme, setMeme] = useState({
@@ -31,6 +31,76 @@ export default function Main() {
         }))
     }
 
+    // Canvas ref for drawing meme
+    const canvasRef = useRef(null)
+
+    useEffect(() => {
+        const canvas = canvasRef?.current
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d')
+        const image = new window.Image()
+        image.crossOrigin = 'anonymous'
+        image.src = meme.imageUrl
+        image.onload = () => {
+            canvas.width = image.width
+            canvas.height = image.height
+            ctx.drawImage(image, 0, 0)
+            ctx.font = `bold 40px Impact, Arial`
+            ctx.textAlign = 'center'
+            ctx.strokeStyle = 'black'
+            ctx.lineWidth = 3
+            ctx.fillStyle = 'white'
+            ctx.strokeText(meme.topText, canvas.width / 2, 50)
+            ctx.fillText(meme.topText, canvas.width / 2, 50)
+            ctx.strokeText(meme.bottomText, canvas.width / 2, canvas.height - 20)
+            ctx.fillText(meme.bottomText, canvas.width / 2, canvas.height - 20)
+        };
+    }, [meme, canvasRef]);
+
+    async function handleCanvasClick() {
+        const canvas = canvasRef.current
+        if (!canvas) return
+        const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
+        if (navigator.clipboard && window.ClipboardItem) {
+            canvas.toBlob(async (blob) => {
+                try {
+                    await navigator.clipboard.write([
+                        new window.ClipboardItem({ 'image/png': blob })
+                    ])
+                    alert('Meme image copied to clipboard!')
+                } catch (err) {
+                    // Fallback: offer download
+                    const url = canvas.toDataURL('image/png')
+                    const link = document.createElement('a')
+                    link.href = url
+                    link.download = 'meme.png'
+                    document.body.appendChild(link)
+                    link.click()
+                    document.body.removeChild(link)
+                    if (isSafari) {
+                        alert('Safari does not support direct image copy from canvas. The meme image has been downloaded. You can manually upload or share this file.')
+                    } else {
+                        alert('Clipboard copy failed. Meme image downloaded instead. You can also right-click the image and choose "Copy Image".')
+                    }
+                }
+            }, 'image/png')
+        } else {
+            // Fallback: offer download
+            const url = canvas.toDataURL('image/png')
+            const link = document.createElement('a')
+            link.href = url
+            link.download = 'meme.png'
+            document.body.appendChild(link)
+            link.click();
+            document.body.removeChild(link)
+            if (isSafari) {
+                alert('Safari does not support direct image copy from canvas. The meme image has been downloaded. You can manually upload or share this file.')
+            } else {
+                alert('Clipboard image copy is not supported in this browser. Meme image downloaded instead. You can also right-click the image and choose "Copy Image".')
+            }
+        }
+    }
+
     return (
         <main>
             <div className="form">
@@ -56,9 +126,16 @@ export default function Main() {
                 <button onClick={getMemeImage}>Get a new meme image 🖼</button>
             </div>
             <div className="meme">
-                <img src={meme.imageUrl} />
-                <span className="top">{meme.topText}</span>
-                <span className="bottom">{meme.bottomText}</span>
+                <canvas
+                    ref={canvasRef}
+                    style={{ maxWidth: '100%', cursor: 'pointer', border: '2px solid #333' }}
+                    onClick={handleCanvasClick}
+                />
+                {typeof window !== 'undefined' && /^((?!chrome|android).)*safari/i.test(navigator.userAgent) && (
+                    <div style={{ color: '#b00', marginTop: '8px', fontSize: '0.95em' }}>
+                        Note: Safari does not support direct image copy from canvas. The meme image will be downloaded instead.
+                    </div>
+                )}
             </div>
         </main>
     )
