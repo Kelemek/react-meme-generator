@@ -60,45 +60,14 @@ export default function Main() {
     async function handleCanvasClick() {
         const canvas = canvasRef.current
         if (!canvas) return
-        const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
-        if (navigator.clipboard && window.ClipboardItem) {
-            canvas.toBlob(async (blob) => {
-                try {
-                    await navigator.clipboard.write([
-                        new window.ClipboardItem({ 'image/png': blob })
-                    ])
-                    alert('Meme image copied to clipboard!')
-                } catch (err) {
-                    // Fallback: offer download
-                    const url = canvas.toDataURL('image/png')
-                    const link = document.createElement('a')
-                    link.href = url
-                    link.download = 'meme.png'
-                    document.body.appendChild(link)
-                    link.click()
-                    document.body.removeChild(link)
-                    if (isSafari) {
-                        alert('Safari does not support direct image copy from canvas. The meme image has been downloaded. You can manually upload or share this file.')
-                    } else {
-                        alert('Clipboard copy failed. Meme image downloaded instead. You can also right-click the image and choose "Copy Image".')
-                    }
-                }
-            }, 'image/png')
-        } else {
-            // Fallback: offer download
-            const url = canvas.toDataURL('image/png')
-            const link = document.createElement('a')
-            link.href = url
-            link.download = 'meme.png'
-            document.body.appendChild(link)
-            link.click();
-            document.body.removeChild(link)
-            if (isSafari) {
-                alert('Safari does not support direct image copy from canvas. The meme image has been downloaded. You can manually upload or share this file.')
-            } else {
-                alert('Clipboard image copy is not supported in this browser. Meme image downloaded instead. You can also right-click the image and choose "Copy Image".')
-            }
-        }
+        const url = canvas.toDataURL('image/png')
+        const link = document.createElement('a')
+        link.href = url
+        link.download = 'meme.png'
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        alert('Meme image has been downloaded. You can manually upload or share this file.')
     }
 
     return (
@@ -131,11 +100,7 @@ export default function Main() {
                     style={{ maxWidth: '100%', cursor: 'pointer', border: '2px solid #333' }}
                     onClick={handleCanvasClick}
                 />
-                {typeof window !== 'undefined' && /^((?!chrome|android).)*safari/i.test(navigator.userAgent) && (
-                    <div style={{ color: '#b00', marginTop: '8px', fontSize: '0.95em' }}>
-                        Note: Safari does not support direct image copy from canvas. The meme image will be downloaded instead.
-                    </div>
-                )}
+                {/* Meme image will be downloaded on click. */}
             </div>
         </main>
     )
